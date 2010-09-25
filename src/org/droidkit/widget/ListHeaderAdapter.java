@@ -54,6 +54,17 @@ public class ListHeaderAdapter extends BaseAdapter {
     }
     
     /**
+     * Adds a String from a strings.xml entry.
+     * 
+     * @param header The R.string id for the requested String.
+     * @since 1
+     */
+    public void add(int header) {
+        String str = mContext.getString(header);
+        mHeaders.add(str);
+    }
+    
+    /**
      * Clears out all the header titles associated with this adapter.
      * 
      * @since 1
