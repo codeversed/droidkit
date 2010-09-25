@@ -16,7 +16,8 @@
 package org.droidkit.util;
 
 import android.content.Context;
-import android.view.View;
+
+import java.lang.reflect.Field;
 
 /**
  * Set of methods that will access the resources for the application using the library.
@@ -28,23 +29,49 @@ import android.view.View;
 public class Resources {
 
     /**
-     * Retrieve a View object based on the R.id from the application resources.
+     * Returns the integer id for a given view from the application's R class.
      * 
-     * @param context The Context object used to access the application info.
-     * @param id The View's id as defined in the R class.
-     * @return The View for the given id or null if not found.
+     * @param context The context object used to retrieve the package name.
+     * @param id The String name used for the id in the application's R class.
+     * @return The integer id used throughout the Android SDK for the view object.
      * @since 1
      */
-    public static View findViewById(Context context, int id) {
+    public static int findViewId(Context context, String id) {
         String packageName = context.getApplicationInfo().packageName;
+        int resId = -1;
         
         try {
             Class<?> res = Class.forName(packageName + ".R$id");
+            Field field = res.getField(id);
             
+            resId = field.getInt(null);
         } catch (Exception e) {
-            
+            Log.e("DroidKit", "Exception thrown retrieving R.id." + id);
         }
         
-        return null;
+        return resId;
+    }
+    
+    /**
+     * 
+     * @param context The context object used to retrieve the package name.
+     * @param id The String name used for the layout in the application's R class.
+     * @return The integer id used throughout the Android SDK for the layout file.
+     * @since 1
+     */
+    public static int findLayoutId(Context context, String id) {
+        String packageName = context.getApplicationInfo().packageName;
+        int resId = -1;
+        
+        try {
+            Class<?> res = Class.forName(packageName + ".R$layout");
+            Field field = res.getField(id);
+            
+            resId = field.getInt(null);
+        } catch (Exception e) {
+            Log.e("DroidKit", "Exception thrown retrieving R.layout." + id);
+        }
+        
+        return resId;
     }
 }

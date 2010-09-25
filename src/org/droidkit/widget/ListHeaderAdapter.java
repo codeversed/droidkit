@@ -22,6 +22,8 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import org.droidkit.util.Resources;
+
 import java.util.Vector;
 
 /**
@@ -81,15 +83,31 @@ public class ListHeaderAdapter extends BaseAdapter {
         return pos;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public View getView(int pos, View convertView, ViewGroup parent) {
         ViewHolder holder;
         
         if (convertView == null) {
             LayoutInflater inflater = 
                 (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            
+            convertView = inflater.inflate(Resources.findLayoutId(mContext, "list_header_title"), 
+                parent, false);
+            
+            holder = new ViewHolder();
+            holder.headerView = (TextView) convertView.findViewById(Resources.findViewId(mContext,
+                "list_header_title"));
+            
+            convertView.setTag(holder);
+        } else {
+            holder = (ViewHolder) convertView.getTag();
         }
         
-        return null;
+        holder.headerView.setText(mHeaders.get(pos));
+        
+        return convertView;
     }
 
     static class ViewHolder {
