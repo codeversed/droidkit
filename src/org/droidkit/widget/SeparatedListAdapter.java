@@ -15,9 +15,13 @@
  */
 package org.droidkit.widget;
 
+import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Provides an easy API to creating separated lists for Android user interfaces.
@@ -28,23 +32,94 @@ import android.widget.BaseAdapter;
  */
 public class SeparatedListAdapter extends BaseAdapter {
 
+    private Map<String, BaseAdapter> mSections;
+    private ListHeaderAdapter mHeaderAdapter;
+    
+    public SeparatedListAdapter(Context context) {
+        mHeaderAdapter = new ListHeaderAdapter(context);
+        mSections = new HashMap<String, BaseAdapter>();
+    }
+    
+    public void addSection(String section, BaseAdapter adapter) {
+        mHeaderAdapter.add(section);
+        mSections.put(section, adapter);
+    }
+    
+    /**
+     * 
+     * @since 1
+     */
+    public void clearItems() {
+        mHeaderAdapter.clear();
+        mSections.clear();
+        
+        notifyDataSetChanged();
+    }
+    
+    /**
+     * 
+     * @return The total number of items in the list, including headers.
+     * @since 1
+     */
     public int getCount() {
-        // TODO Auto-generated method stub
-        return 0;
+        int total = 0;
+        int size = mSections.size();
+        
+        for (int i = 0; i < size; i++) {
+            total += mSections.get(i).getCount() + 1;
+        }
+        
+        return total;
     }
 
-    public Object getItem(int arg0) {
-        // TODO Auto-generated method stub
+    /**
+     * {@inheritDoc}
+     */
+    public Object getItem(int pos) {
+        for (Object section : mSections.keySet()) {
+            BaseAdapter adapter = mSections.get(section);
+            int size = adapter.getCount() + 1;
+            
+            if (pos == 0) {
+                return section;
+            }
+            
+            if (pos < size) {
+                return adapter.getItem(pos - 1);
+            }
+            
+            pos -= size;
+        }
+        
         return null;
     }
 
-    public long getItemId(int arg0) {
-        // TODO Auto-generated method stub
-        return 0;
+    public long getItemId(int pos) {
+        return pos;
     }
 
-    public View getView(int arg0, View arg1, ViewGroup arg2) {
-        // TODO Auto-generated method stub
+    /**
+     * {@inheritDoc}
+     */
+    public View getView(int pos, View convertView, ViewGroup parent) {
+        int sectionNum = 0;
+        
+        for (Object section : mSections.keySet()) {
+            BaseAdapter adapter = mSections.get(section);
+            int size = adapter.getCount() + 1;
+            
+            if (pos == 0) {
+                return mHeaderAdapter.getView(sectionNum, null, parent);
+            }
+            
+            if (pos < size) {
+                return adapter.getView(pos - 1, null, parent);
+            }
+            
+            pos -= size;
+            sectionNum++;
+        }
+        
         return null;
     }
 
