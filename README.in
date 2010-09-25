@@ -1,0 +1,16 @@
+libdroidkit
+-----------
+
+Included in this package you'll find the libdroidkit jar file, resources directory, assets directory and a script to help install the library into your application.
+
+Steps for easy install
+----------------------
+
+1. Run the buildpkg command (might need to run chmod +x buildpkg first) with --install /path/to/android/project/root
+
+2. Grab a refreshment for all the hard work you did in step 1.
+
+What'll you end up with after running `buildpkg` is the library in the libs directory of your app and the resources merged into your existing
+resources directory; same goes for the assets directory.
+
+

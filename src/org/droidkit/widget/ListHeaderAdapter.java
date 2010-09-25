@@ -110,6 +110,14 @@ public class ListHeaderAdapter extends BaseAdapter {
         return convertView;
     }
 
+    /**
+     * Object used to cache the list item views for much better performance, it won't require an
+     * inflation at each item.
+     * 
+     * @version 1
+     * @since 1
+     * @author mrn
+     */
     static class ViewHolder {
         TextView headerView;
     }

@@ -1,0 +1,113 @@
+#!/usr/bin/env python
+
+# Copyright 2010 Mike Novak <michael.novakjr@gmail.com>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from __future__ import with_statement
+from subprocess import call
+from contextlib import closing
+from zipfile import ZipFile, ZIP_DEFLATED
+import optparse
+import os, sys, stat
+import shutil
+import tarfile
+import ConfigParser
+
+libname = 'libdroidkit'
+
+def main():
+    p = optparse.OptionParser(description='Builds and packages the DroidKit library.', prog='buildpkg', version='buildpkg 1.0')
+    p.add_option('--install', '-i')
+    p.add_option('--out', '-o')
+    options, arugments = p.parse_args()
+    
+    if options.out is not None:
+        build_dest_package(options.out)
+
+    if options.install is not None:
+        install_to(options.install)
+        
+def build_dest_package(out):
+    # build the java sources first.
+    call(["ant", "-buildfile", "build.xml"])
+
+    config = ConfigParser.ConfigParser()
+    config.readfp(open('build.properties'))
+
+    global libname
+    libname = libname + '-' + config.get('build', 'build.major') + '.' + config.get('build', 'build.minor') + '.' + config.get('build', 'build.rev')
+
+    # copy the resources out to the tarball and zip file builder.
+    os.mkdir(libname)
+    shutil.copyfile('out' + os.sep + 'production' + os.sep + 'libdroidkit.jar', libname + os.sep + 'libdroidkit.jar')
+    shutil.copyfile('NOTICE', libname + os.sep + 'NOTICE')
+    shutil.copyfile('README.in', libname + os.sep + 'README')
+    shutil.copyfile('buildpkg', libname + os.sep + 'buildpkg')
+    os.chmod(libname + os.sep + 'buildpkg', stat.S_IEXEC|stat.S_IWRITE|stat.S_IREAD)
+
+    os.mkdir(libname + os.sep + 'res')    
+    copy_dir_contents('res', libname + os.sep + 'res')
+
+    # copy the javadoc into the package.
+    os.mkdir(libname + os.sep + 'doc')
+    copy_dir_contents('out' + os.sep + 'production' + os.sep + 'doc', libname + os.sep + 'doc')
+
+    # compress the libdroidkit file into a tar.gz and a .zip
+    zip_dir(libname, out + os.sep + libname + '.zip')
+
+    tar = tarfile.open(out + os.sep + libname + '.tar.gz', 'w:gz')
+    tar.add(libname)
+    tar.close()
+
+    # remove the directory used to build the archives.
+    shutil.rmtree(libname)
+
+def install_to(out):
+    shutil.copyfile('libdroidkit.jar', out + os.sep + 'libs' + os.sep + 'libdroidkit.jar')
+    copy_dir_contents('res', options.install + os.sep + 'res')
+    copy_dir_contents('assets', options.install + os.sep + 'assets')
+
+def copy_dir_contents(src, dest):
+    names = os.listdir(src)
+
+    if os.path.exists(dest) is not True:
+        os.mkdir(dest)
+
+    for name in names:
+        srcname = os.path.join(src, name)
+        destname = os.path.join(dest, name)
+    
+        try:
+            if os.path.isdir(srcname):
+                copy_dir_contents(srcname, destname)
+            else:
+                shutil.copyfile(srcname, destname)    
+        except (IOError, os.error), why:
+            print why
+            raise
+
+def zip_dir(basedir, archivename):
+    assert os.path.isdir(basedir)
+    with closing(ZipFile(archivename, "w", ZIP_DEFLATED)) as z:
+        z.write(basedir)
+
+        for root, dirs, files in os.walk(basedir):
+            #NOTE: ignore empty directories
+            for fn in files:
+                absfn = os.path.join(root, fn)
+                zfn = absfn[len(basedir)+len(os.sep):]
+                z.write(absfn, basedir + os.sep + zfn)
+
+if __name__ == '__main__':
+    main()
