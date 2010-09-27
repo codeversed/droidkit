@@ -28,15 +28,20 @@ libname = 'libdroidkit'
 
 def main():
     p = optparse.OptionParser(description='Builds and packages the DroidKit library.', prog='buildpkg', version='buildpkg 1.0')
-    p.add_option('--install', '-i')
-    p.add_option('--out', '-o')
+    p.add_option('--install', '-i', help="Root directory of the Android project to install the library from a tarball or zip file.")
+    p.add_option('--out', '-o', help="Specifies the directory to build the compressed files to.")
+    p.add_option('--srcinstall', '-s', help="Root directory of the Android project to install the library from the source tree.")
+    p.add_option("-d", action="store_true", dest="debug", help="uses development ant target instead of production")
     options, arugments = p.parse_args()
-    
+
     if options.out is not None:
         build_dest_package(options.out)
 
     if options.install is not None:
         install_to(options.install)
+
+    if options.srcinstall is not None:
+        src_install_to(options.srcinstall, True if options.debug else False)
         
 def build_dest_package(out):
     # build the java sources first.
@@ -75,8 +80,20 @@ def build_dest_package(out):
 
 def install_to(out):
     shutil.copyfile('libdroidkit.jar', out + os.sep + 'libs' + os.sep + 'libdroidkit.jar')
-    copy_dir_contents('res', options.install + os.sep + 'res')
-    copy_dir_contents('assets', options.install + os.sep + 'assets')
+    copy_dir_contents('res', out + os.sep + 'res')
+    copy_dir_contents('assets', out + os.sep + 'assets')
+    print 'Install successful.'
+
+def src_install_to(out, debug):
+    if debug is True: 
+        call(["ant", "development", "-buildfile", "build.xml"])
+    else:
+        call(["ant", "-buildfile", "build.xml"])
+
+    shutil.copyfile('out' + os.sep + 'development' + os.sep + 'libdroidkit.jar' if debug is True else 'out' + os.sep + 'production' + os.sep + 'libdroidkit.jar', out + os.sep + 'libs' + 'libdroidkit.jar')
+    copy_dir_contents('res', out + os.sep + 'res')
+    copy_dir_contents('assets', out + os.sep + 'assets')
+    print 'Source install successful.'
 
 def copy_dir_contents(src, dest):
     names = os.listdir(src)
