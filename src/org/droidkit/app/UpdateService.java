@@ -27,11 +27,13 @@ import android.os.Binder;
 import android.os.Environment;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.RemoteViews;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.droidkit.util.Resources;
 //import org.droidkit.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -43,7 +45,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Field;
 
 /**
  * Provides an easy over the air update service for applications that are not distributed via
@@ -80,17 +81,8 @@ public class UpdateService extends Service {
             return;
         }
         
-        /* pull the url from the strings.xml file of the application. */
-        String packageName = getApplicationInfo().packageName;
-        
-        try {
-            Class<?> res = Class.forName(packageName + ".R$string");
-            Field field = res.getField("update_service_url");
-            int resId = field.getInt(null);
-            mUpdateServer = getString(resId);
-        } catch (Exception e) {
-            Log.e("DroidKit", "Error locating the update service url." + e.toString());
-        }
+        mUpdateServer = getString(Resources.getId(this, "update_service_url", 
+                Resources.TYPE_STRING));
         
         Log.i("DroidKit", "Update Server: " + mUpdateServer);
         
@@ -233,8 +225,15 @@ public class UpdateService extends Service {
         PendingIntent pending = PendingIntent.getActivity(this, 0, intent, 0);
         Notification n = new Notification(android.R.drawable.stat_sys_download,
                 "Downloading update...", System.currentTimeMillis());
-        n.setLatestEventInfo(this, "Downloading update...", desc, pending);
         n.flags = Notification.FLAG_ONGOING_EVENT;
+        n.contentIntent = pending;
+        
+        RemoteViews view = new RemoteViews(getPackageName(), 
+                Resources.getId(this, "update_notification", Resources.TYPE_LAYOUT));
+        view.setTextViewText(Resources.getId(this, "update_title_text", Resources.TYPE_ID), desc);
+        view.setProgressBar(Resources.getId(this, "update_progress_bar", Resources.TYPE_ID), 
+                100, 0, true);
+        n.contentView = view;
         
         mNotificationManager.notify("Downloading update...", UPDATE_DOWNLOADING_ID, n);
     }
