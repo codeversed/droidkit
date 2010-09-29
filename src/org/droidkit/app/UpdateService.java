@@ -58,6 +58,7 @@ public class UpdateService extends Service {
 
     public static final int UPDATE_AVAILABLE = 1;
     public static final int UPDATE_SERVICE_ID = 0x011;
+    public static final int UPDATE_DOWNLOADING_ID = 0x012;
     
     private NotificationManager mNotificationManager;
     private IBinder mBinder = new UpdateBinder();
@@ -114,10 +115,9 @@ public class UpdateService extends Service {
         try {
             HttpResponse response = client.execute(get);
             InputStream in = response.getEntity().getContent();
-            
-            //Log.e("DroidKit", "Error, content length short: " + response.getEntity().getContentLength());
-            
-            BufferedReader reader = new BufferedReader(new InputStreamReader(in), 8096);
+                        
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in), 
+                    (int) response.getEntity().getContentLength());
             
             String line = "";
             
@@ -156,9 +156,21 @@ public class UpdateService extends Service {
             Log.i("DroidKit", "Latest verion: " + updateVersion);
             
             if (currentVersion < updateVersion) {
-                boolean result = updateVersion(update.getString("apk.url"));
+                /* determine if we should download the update automatically. */
+                boolean download = mPreferences.getBoolean("download.updates", true);
+                
+                if (download) {
+                    /* display the ongoing download notification. */
+                    notifyDownloading();
                     
-                if (result) {
+                    boolean result = updateVersion(update.getString("apk.url"));
+                    
+                    mNotificationManager.cancel("Downloading update...", UPDATE_DOWNLOADING_ID);
+                    
+                    if (result) {
+                        notifyUser(obj);
+                    }
+                } else {
                     notifyUser(obj);
                 }
             }
@@ -211,6 +223,20 @@ public class UpdateService extends Service {
         n.setLatestEventInfo(this, "Update Available", desc, pending);
         
         mNotificationManager.notify("Update Available", UPDATE_SERVICE_ID, n);
+    }
+    
+    private void notifyDownloading() {
+        Intent intent = new Intent(this, UpdateActivity.class);
+        intent.putExtra("downloading", true);
+        
+        String desc = "Downloading update for " + getString(getApplicationInfo().labelRes);
+        PendingIntent pending = PendingIntent.getActivity(this, 0, intent, 0);
+        Notification n = new Notification(android.R.drawable.stat_sys_download,
+                "Downloading update...", System.currentTimeMillis());
+        n.setLatestEventInfo(this, "Downloading update...", desc, pending);
+        n.flags = Notification.FLAG_ONGOING_EVENT;
+        
+        mNotificationManager.notify("Downloading update...", UPDATE_DOWNLOADING_ID, n);
     }
     
     private Runnable mRunnable = new Runnable() {
