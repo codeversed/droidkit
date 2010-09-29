@@ -26,12 +26,13 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Binder;
 import android.os.Environment;
 import android.os.IBinder;
+import android.util.Log;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.droidkit.util.Log;
+//import org.droidkit.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -90,8 +91,11 @@ public class UpdateService extends Service {
             Log.e("DroidKit", "Error locating the update service url." + e.toString());
         }
         
+        Log.i("DroidKit", "Update Server: " + mUpdateServer);
+        
         if (mUpdateServer == null) {
             /* abort the process, we don't have an update server to contact. */
+            Log.e("DroidKit", "No update service provided, stopping service.");
             stopSelf();
             return;
         }
@@ -102,14 +106,18 @@ public class UpdateService extends Service {
     
     private void queryServer() {
         DefaultHttpClient client = new DefaultHttpClient();
-        HttpGet get = new HttpGet(mUpdateServer);
+        HttpGet get = new HttpGet(mUpdateServer + "?foobar=boo");
         StringBuffer obj = new StringBuffer();
+        
+        Log.i("DroidKit", "Checking updates: " + mUpdateServer);
         
         try {
             HttpResponse response = client.execute(get);
             InputStream in = response.getEntity().getContent();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(in), 
-                    (int) response.getEntity().getContentLength());
+            
+            //Log.e("DroidKit", "Error, content length short: " + response.getEntity().getContentLength());
+            
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in), 8096);
             
             String line = "";
             
@@ -140,13 +148,15 @@ public class UpdateService extends Service {
         }
         
         try {
-            JSONArray arr = new JSONArray(obj);
-            JSONObject json = arr.getJSONObject(0);
+            JSONObject json = new JSONObject(obj);
+            JSONArray arr = json.getJSONArray("updates");
+            JSONObject update = arr.getJSONObject(0);
             
-            int updateVersion = json.getInt("version.code");
+            int updateVersion = update.getInt("version.code");
+            Log.i("DroidKit", "Latest verion: " + updateVersion);
             
             if (currentVersion < updateVersion) {
-                boolean result = updateVersion(json.getString("apk.url"));
+                boolean result = updateVersion(update.getString("apk.url"));
                     
                 if (result) {
                     notifyUser(obj);
@@ -193,7 +203,7 @@ public class UpdateService extends Service {
         Intent intent = new Intent(this, UpdateActivity.class);
         intent.putExtra("json", json);
         
-        String desc = "Update available for " + getApplicationInfo().name;
+        String desc = "Update available for " + getString(getApplicationInfo().labelRes);
         
         PendingIntent pending = PendingIntent.getActivity(this, 0, intent, 0);
         Notification n = new Notification(android.R.drawable.stat_sys_download_done, 
