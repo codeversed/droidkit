@@ -28,6 +28,11 @@ import java.lang.reflect.Field;
  */
 public class Resources {
 
+    public static final int TYPE_STRING = 1;
+    public static final int TYPE_LAYOUT = 2;
+    public static final int TYPE_DRAWABLE = 3;
+    public static final int TYPE_ID = 4;
+    
     /**
      * Returns the integer id for a given view from the application's R class.
      * 
@@ -70,6 +75,36 @@ public class Resources {
             resId = field.getInt(null);
         } catch (Exception e) {
             Log.e("DroidKit", "Exception thrown retrieving R.layout." + id);
+        }
+        
+        return resId;
+    }
+    
+    public static int getId(Context context, String id, int type) {
+        String packageName = context.getApplicationInfo().packageName;
+        int resId = -1;
+        Class<?> res = null;
+        
+        try {
+            switch (type) {
+            case TYPE_STRING:
+                res = Class.forName(packageName + ".R$string");
+                break;
+            case TYPE_LAYOUT:
+                res = Class.forName(packageName + ".R$layout");
+                break;
+            case TYPE_DRAWABLE:
+                res = Class.forName(packageName + ".R$drawable");
+                break;
+            case TYPE_ID:
+                res = Class.forName(packageName + ".R$id");
+                break;
+            }
+            
+            Field field = res.getField(id);
+            resId = field.getInt(null);
+        } catch (Exception e) {
+            Log.e("DroidKit", "Error parsing the Class type.");
         }
         
         return resId;
