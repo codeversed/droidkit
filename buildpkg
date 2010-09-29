@@ -90,7 +90,7 @@ def src_install_to(out, debug):
     else:
         call(["ant", "-buildfile", "build.xml"])
 
-    shutil.copyfile('out' + os.sep + 'development' + os.sep + 'libdroidkit.jar' if debug is True else 'out' + os.sep + 'production' + os.sep + 'libdroidkit.jar', out + os.sep + 'libs' + 'libdroidkit.jar')
+    shutil.copyfile('out' + os.sep + 'development' + os.sep + 'libdroidkit.jar' if debug is True else 'out' + os.sep + 'production' + os.sep + 'libdroidkit.jar', out + os.sep + 'libs' + os.sep + 'libdroidkit.jar')
     copy_dir_contents('res', out + os.sep + 'res')
     copy_dir_contents('assets', out + os.sep + 'assets')
     print 'Source install successful.'
