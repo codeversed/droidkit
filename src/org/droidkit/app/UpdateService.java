@@ -153,7 +153,7 @@ public class UpdateService extends Service {
                 
                 if (download) {
                     /* display the ongoing download notification. */
-                    notifyDownloading();
+                    notifyDownloading(obj);
                     
                     boolean result = updateVersion(update.getString("apk.url"));
                     
@@ -217,9 +217,10 @@ public class UpdateService extends Service {
         mNotificationManager.notify("Update Available", UPDATE_SERVICE_ID, n);
     }
     
-    private void notifyDownloading() {
+    private void notifyDownloading(String json) {
         Intent intent = new Intent(this, UpdateActivity.class);
         intent.putExtra("downloading", true);
+        intent.putExtra("json", json);
         
         String desc = "Downloading update for " + getString(getApplicationInfo().labelRes);
         PendingIntent pending = PendingIntent.getActivity(this, 0, intent, 0);

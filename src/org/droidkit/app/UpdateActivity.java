@@ -18,6 +18,8 @@ package org.droidkit.app;
 import android.app.Activity;
 import android.os.Bundle;
 
+import org.droidkit.util.Resources;
+
 /**
  * 
  * @version 1
@@ -29,6 +31,7 @@ public class UpdateActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(Resources.getId(this, "activity_update", Resources.TYPE_LAYOUT));
     }
     
 }
