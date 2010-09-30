@@ -25,7 +25,9 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Binder;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.util.Log;
 import android.widget.RemoteViews;
 
@@ -60,11 +62,14 @@ public class UpdateService extends Service {
     public static final int UPDATE_AVAILABLE = 1;
     public static final int UPDATE_SERVICE_ID = 0x011;
     public static final int UPDATE_DOWNLOADING_ID = 0x012;
+    public static final int DOWNLOAD_DONE = 0x013;
     
     private NotificationManager mNotificationManager;
     private IBinder mBinder = new UpdateBinder();
     private String mUpdateServer;
     private SharedPreferences mPreferences;
+    private boolean isDownloading = false;
+    private Handler mHandler = new Handler();
     
     @Override
     public void onCreate() {
@@ -95,6 +100,14 @@ public class UpdateService extends Service {
         
         Thread thr = new Thread(mRunnable);
         thr.start();
+    }
+    
+    public void setHandler(Handler handler) {
+        mHandler = handler;
+    }
+    
+    public boolean isDownloading() {
+        return isDownloading;
     }
     
     private void queryServer() {
@@ -154,10 +167,13 @@ public class UpdateService extends Service {
                 if (download) {
                     /* display the ongoing download notification. */
                     notifyDownloading(obj);
+                    isDownloading = true;
                     
                     boolean result = updateVersion(update.getString("apk.url"));
                     
                     mNotificationManager.cancel("Downloading update...", UPDATE_DOWNLOADING_ID);
+                    isDownloading = false;
+                    Message.obtain(mHandler, DOWNLOAD_DONE, null).sendToTarget();
                     
                     if (result) {
                         notifyUser(obj);

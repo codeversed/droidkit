@@ -16,14 +16,20 @@
 package org.droidkit.app;
 
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Message;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import org.droidkit.util.Resources;
@@ -47,17 +53,23 @@ public class UpdateActivity extends Activity {
     TextView mAuthorView;
     TextView mPublishedView;
     TextView mVersionView;
+    TextView mDownloadLabel;
     WebView mNotesView;
+    ProgressBar mProgressUpdate;
     
     Button mCloseButton;
     Button mUpdateButton;
     String mApkFile;
+    boolean mServiceRunning = false;
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
         setTheme(android.R.style.Theme_Light_NoTitleBar);
         super.onCreate(savedInstanceState);
         setContentView(Resources.getId(this, "activity_update", Resources.TYPE_LAYOUT));
+        
+        bindService(new Intent(this, UpdateService.class), mConnection, BIND_AUTO_CREATE);
+        mServiceRunning = true;
         
         mIconView = 
             (ImageView) findViewById(Resources.getId(this, "update_act_icon", Resources.TYPE_ID));
@@ -67,11 +79,16 @@ public class UpdateActivity extends Activity {
             (TextView) findViewById(Resources.getId(this, "update_act_author", Resources.TYPE_ID));
         mVersionView = 
             (TextView) findViewById(Resources.getId(this, "update_act_ver", Resources.TYPE_ID));
+        mDownloadLabel = 
+            (TextView) findViewById(Resources.getId(this, "update_act_dl", Resources.TYPE_ID));
         
         mNotesView =
             (WebView) findViewById(Resources.getId(this, "update_act_relnotes", Resources.TYPE_ID));
         
         mIconView.setImageResource(getApplicationInfo().icon);
+        
+        mProgressUpdate =
+            (ProgressBar) findViewById(Resources.getId(this, "update_act_bar", Resources.TYPE_ID));
         
         mCloseButton =
             (Button) findViewById(Resources.getId(this, "update_act_cancel", Resources.TYPE_ID));
@@ -105,6 +122,49 @@ public class UpdateActivity extends Activity {
             Log.e("DroidKit", "Error parsing the update JSON.");
         }
     }
+    
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        
+        if (mServiceRunning) {
+            unbindService(mConnection);
+        }
+    }
+    
+    protected ServiceConnection mConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            UpdateService updater = ((UpdateService.UpdateBinder) service).getService();
+            boolean isDownloading = updater.isDownloading();
+            
+            if (isDownloading) {
+                mProgressUpdate.setIndeterminate(true);
+                mProgressUpdate.setVisibility(View.VISIBLE);
+                mUpdateButton.setEnabled(false);
+                mDownloadLabel.setText("Downloading update...");
+                mDownloadLabel.setVisibility(View.VISIBLE);
+                
+                updater.setHandler(mHandler);
+            }
+            
+        }
+        
+        public void onServiceDisconnected(ComponentName name) {
+            Log.d("DroidKit", "Service is being disconnected...");
+        }
+    };
+    
+    Handler mHandler = new Handler() {
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+            case UpdateService.DOWNLOAD_DONE:
+                mDownloadLabel.setVisibility(View.GONE);
+                mProgressUpdate.setVisibility(View.GONE);
+                mUpdateButton.setEnabled(true);
+                break;
+            }
+        }
+    };
     
     View.OnClickListener mUpdateClick = new View.OnClickListener() {
         public void onClick(View view) {

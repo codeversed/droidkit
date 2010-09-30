@@ -75,6 +75,19 @@
 		<TextView android:id="@+id/update_act_published"
 	   		android:layout_width="fill_parent"
 	    	android:layout_height="wrap_content" />
+	   	
+	   	<TextView android:id="@+id/update_act_dl"
+	   		android:layout_width="fill_parent"
+	   		android:layout_height="wrap_content"
+	   		android:padding="5dip"
+	   		android:visibility="gone" />
+	   		
+	    <ProgressBar android:id="@+id/update_act_bar"
+	    	android:layout_width="fill_parent"
+	    	android:layout_height="wrap_content"
+	    	android:padding="5dip"
+	    	android:visibility="gone"
+	    	style="?android:attr/progressBarStyleHorizontal" />
 	     
 		<WebView android:id="@+id/update_act_relnotes"
 	    	android:layout_width="fill_parent"
