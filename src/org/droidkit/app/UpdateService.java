@@ -222,7 +222,7 @@ public class UpdateService extends Service {
         intent.putExtra("downloading", true);
         intent.putExtra("json", json);
         
-        String desc = "Downloading update for " + getString(getApplicationInfo().labelRes);
+        String desc = "Downloading " + getString(getApplicationInfo().labelRes);
         PendingIntent pending = PendingIntent.getActivity(this, 0, intent, 0);
         Notification n = new Notification(android.R.drawable.stat_sys_download,
                 "Downloading update...", System.currentTimeMillis());
@@ -234,6 +234,9 @@ public class UpdateService extends Service {
         view.setTextViewText(Resources.getId(this, "update_title_text", Resources.TYPE_ID), desc);
         view.setProgressBar(Resources.getId(this, "update_progress_bar", Resources.TYPE_ID), 
                 100, 0, true);
+        view.setImageViewResource(Resources.getId(this, "update_notif_icon", Resources.TYPE_ID),
+                android.R.drawable.stat_sys_download);
+        
         n.contentView = view;
         
         mNotificationManager.notify("Downloading update...", UPDATE_DOWNLOADING_ID, n);
