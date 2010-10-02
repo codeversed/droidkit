@@ -104,7 +104,7 @@ public class ListHeaderAdapter extends BaseAdapter {
             LayoutInflater inflater = 
                 (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             
-            convertView = inflater.inflate(Resources.findLayoutId(mContext, "list_header_title"), 
+            convertView = inflater.inflate(Resources.findLayoutId(mContext, "list_header"), 
                 parent, false);
             
             holder = new ViewHolder();

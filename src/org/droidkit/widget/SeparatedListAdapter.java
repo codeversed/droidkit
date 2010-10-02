@@ -63,10 +63,9 @@ public class SeparatedListAdapter extends BaseAdapter {
      */
     public int getCount() {
         int total = 0;
-        int size = mSections.size();
         
-        for (int i = 0; i < size; i++) {
-            total += mSections.get(i).getCount() + 1;
+        for (BaseAdapter adapter : mSections.values()) {
+            total += adapter.getCount() + 1;
         }
         
         return total;
