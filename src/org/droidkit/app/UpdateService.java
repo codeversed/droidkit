@@ -185,6 +185,8 @@ public class UpdateService extends Service {
         } catch (JSONException e) {
             Log.e("DroidKit", "Error parsing update server response: " + e.toString());
         }
+
+        stopSelf();
     }
     
     private boolean updateVersion(String apk) {
