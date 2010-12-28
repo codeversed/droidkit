@@ -16,14 +16,9 @@
  * limitations under the License.
  */
  -->
- <PreferenceScreen xmlns:droidkit="http://schemas.android.com/apk/res/org.droidkit.demos"
-     xmlns:android="http://schemas.android.com/apk/res/android">
-     
-     <org.droidkit.preference.NumberPickerPreference
-         android:key="demo.number.preference"
-         android:title="Demo Number Picker"
-         android:summary="Implement a num picker pref"
-         droidkit:startRange="-50"
-         droidkit:endRange="50" />
-         
-</PreferenceScreen>
+<resources>
+    <declare-styleable name="droidkit">
+        <attr name="startRange" format="integer" />
+        <attr name="endRange" format="integer" />
+    </declare-styleable>
+</resources>

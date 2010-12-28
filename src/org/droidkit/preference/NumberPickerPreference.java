@@ -17,6 +17,7 @@ package org.droidkit.preference;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.res.TypedArray;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
 import android.view.View;
@@ -26,11 +27,19 @@ import org.droidkit.widget.NumberPicker;
 
 public class NumberPickerPreference extends DialogPreference {
     private NumberPicker mPicker;
+    private int mStartRange;
+    private int mEndRange;
     
     public NumberPickerPreference(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         
+        TypedArray arr = context.obtainStyledAttributes(attrs, R.styleable.droidkit);
+        mStartRange = arr.getInteger(R.styleable.droidkit_startRange, 0);
+        mEndRange = arr.getInteger(R.styleable.droidkit_endRange, 200);
+        
         setDialogLayoutResource(R.layout.number_picker_pref);
+                
+        arr.recycle();
     }
     
     public NumberPickerPreference(Context context, AttributeSet attrs) {
@@ -44,8 +53,8 @@ public class NumberPickerPreference extends DialogPreference {
     @Override
     protected void onBindDialogView(View view) {
         super.onBindDialogView(view);
-        
         mPicker = (NumberPicker) view.findViewById(R.id.pref_num_picker);
+        mPicker.setRange(mStartRange, mEndRange);
         mPicker.setCurrent(getValue());
     }
     
@@ -57,6 +66,10 @@ public class NumberPickerPreference extends DialogPreference {
         default:
             break;
         }
+    }
+    
+    public void setRange(int start, int end) {
+        mPicker.setRange(start, end);
     }
     
     private void saveValue(int val) {
