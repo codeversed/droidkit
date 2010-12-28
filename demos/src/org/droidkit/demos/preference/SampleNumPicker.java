@@ -17,11 +17,21 @@ package org.droidkit.demos.preference;
 
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
+import android.preference.PreferenceManager;
+
+import org.droidkit.demos.R;
 
 public class SampleNumPicker extends PreferenceActivity {
-
+    PreferenceManager mPreferenceManager;
+    
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        mPreferenceManager = getPreferenceManager();
+        mPreferenceManager.setSharedPreferencesName("droidkit.demos.prefs");
+        mPreferenceManager.setSharedPreferencesMode(MODE_PRIVATE);
+        
+        addPreferencesFromResource(R.xml.num_pick_prefs);
     }
 }

@@ -16,7 +16,12 @@
  * limitations under the License.
  */
  -->
-<resources>
-    <string name="app_name">Droidkit Demos</string>
-    <string name="num_picker_sample">Preference/Number Picker Preference</string>
-</resources>
+ <PreferenceScreen xmlns:droidkit="http://schemas.android.com/apk/res/org.droidkit"
+     xmlns:android="http://schemas.android.com/apk/res/android">
+     
+     <org.droidkit.preference.NumberPickerPreference
+         android:key="demo.number.preference"
+         android:title="Demo Number Picker"
+         android:summary="Shows how to implement a num picker" />
+         
+</PreferenceScreen>
